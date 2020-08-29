@@ -40,6 +40,8 @@ Output example
 ```
 
 Example adding pull request comment 
+![comments Image](https://github.com/klusht/kustomization-compare/blob/master/resources/comment_example.png)
+
 
 
 ## Benefits:
