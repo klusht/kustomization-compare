@@ -1,0 +1,2 @@
+# kustomization-compare
+kustomization
