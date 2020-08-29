@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: my-nginx
+spec:
+  ports:
+    - name: web
+      port: 80
+      protocol: TCP
+    - name: web-patch
+      port: 8092
+      protocol: TCP
+  selector:
+    run: my-nginx

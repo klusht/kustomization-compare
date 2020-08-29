@@ -1,0 +1,44 @@
+name: kustomize-compare-local
+
+on:
+  pull_request:
+    branches:
+      - master
+jobs:
+  kustomize-compare-local:
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cache binary files
+        uses: actions/cache@v2
+        id: cache-bin
+        with:
+          path: ~/bin
+          key: ${{ runner.os }}-bin
+
+      # this cache-hit flag is set only if all steps are successful,
+      #   but restore cache will run even if flag is not set, make sure this step is idempotent
+      - name: Get binaries
+        if: steps.cache-bin.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p ~/bin && \
+          wget -q -nv -cO - https://github.com/mikefarah/yq/releases/download/3.3.2/yq_linux_amd64 > ~/bin/yq  2>/dev/null && chmod +755 ~/bin/yq && \
+          wget -q -nv -cO - https://storage.googleapis.com/kubernetes-release/release/v1.18.0/bin/linux/amd64/kubectl > ~/bin/kubectl  2>/dev/null && chmod +755 ~/bin/kubectl && \
+          wget -q -nv -cO - https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize/v3.8.1/kustomize_v3.8.1_linux_amd64.tar.gz > kustomize.tar.gz   2>/dev/null && \
+          tar xzf kustomize.tar.gz && rm kustomize.tar.gz && mv kustomize ~/bin
+
+      - uses: actions/checkout@v2
+      - name: Get repo code to compute comparison
+        run: git fetch --unshallow origin master
+
+      - name: Kustomize compare local differences for probe-phrase-search/kustomize/overlays/dev
+        run: |
+          export PATH=~/bin:$PATH
+          .github/workflows/kustomize-compare-action.sh probe-phrase-search/kustomize/overlays/dev
+
+      - name: Kustomize compare local differences for probe-phrase-search/kustomize/overlays/prod
+        run: |
+          export PATH=~/bin:$PATH
+          .github/workflows/kustomize-compare-action.sh probe-phrase-search/kustomize/overlays/prod
+
